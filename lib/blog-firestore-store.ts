@@ -8,13 +8,14 @@ import {
   query,
   setDoc,
   Timestamp,
+  updateDoc,
 } from 'firebase/firestore'
 import { db, isFirebaseConfigured } from '@/lib/firebase'
 import type { BlogPost } from '@/lib/blog-store'
 
 type BlogDocument = {
   id: string
-  authorId: string
+  authorId?: string
   title: string
   excerpt: string
   content: string
@@ -40,6 +41,7 @@ function ensureFirestore() {
 function mapBlogDocument(data: BlogDocument): BlogPost {
   return {
     id: data.id,
+    authorId: data.authorId,
     title: data.title,
     excerpt: data.excerpt,
     content: data.content,
@@ -93,6 +95,30 @@ export async function createPostFirestore(
 export async function deletePostFirestore(id: string): Promise<void> {
   const firestore = ensureFirestore()
   await deleteDoc(doc(firestore, BLOGS_COLLECTION, id))
+}
+
+export async function updatePostFirestore(
+  id: string,
+  post: Pick<BlogPost, 'title' | 'excerpt' | 'content' | 'coverImage' | 'category'>,
+  authorId: string
+): Promise<void> {
+  const firestore = ensureFirestore()
+  const postRef = doc(firestore, BLOGS_COLLECTION, id)
+  const snapshot = await getDoc(postRef)
+
+  if (!snapshot.exists()) {
+    throw new Error('Data blog tidak ditemukan')
+  }
+
+  const existingPost = snapshot.data() as BlogDocument
+  if (existingPost.authorId && existingPost.authorId !== authorId) {
+    throw new Error('Anda tidak memiliki izin untuk mengedit artikel ini')
+  }
+
+  await updateDoc(postRef, {
+    ...post,
+    updatedAt: Timestamp.now(),
+  })
 }
 
 export function getCategoriesFromPosts(posts: BlogPost[]): string[] {

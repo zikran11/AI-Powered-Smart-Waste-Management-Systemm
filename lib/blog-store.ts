@@ -1,5 +1,6 @@
 export interface BlogPost {
   id: string
+  authorId?: string
   title: string
   excerpt: string
   content: string

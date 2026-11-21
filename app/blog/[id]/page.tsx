@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, Calendar, User, Trash2 } from 'lucide-react'
+import { ArrowLeft, Calendar, Pencil, User, Trash2 } from 'lucide-react'
 import {
   getPostByIdFirestore,
   deletePostFirestore,
@@ -150,7 +150,9 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
     )
   }
 
-  const isAuthor = user?.email === post.author.email
+  const isAuthor =
+    !!user &&
+    ((post.authorId && user.uid === post.authorId) || user.email === post.author.email)
 
   return (
     <div ref={pageRef} className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-8">
@@ -167,28 +169,39 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
           </Button>
 
           {isAuthor && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
-                  <Trash2 className="w-4 h-4" />
-                  Hapus
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Hapus Artikel?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Tindakan ini tidak dapat dibatalkan. Artikel akan dihapus secara permanen.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => router.push(`/blog/${post.id}/edit`)}
+              >
+                <Pencil className="w-4 h-4" />
+                Edit
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
+                    <Trash2 className="w-4 h-4" />
                     Hapus
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Hapus Artikel?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tindakan ini tidak dapat dibatalkan. Artikel akan dihapus secara permanen.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                      Hapus
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           )}
         </div>
 
